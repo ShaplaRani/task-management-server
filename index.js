@@ -1,7 +1,7 @@
 const express = require('express')
 require('dotenv').config()
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -38,19 +38,64 @@ async function run() {
     // Send a ping to confirm a successful connection
     //await client.db("admin").command({ ping: 1 });
     app.get('/task', async(req, res) => {
-        // const email = req.query?.email;
-        // let  query = {};
-        // if(email){
-        //    query = {email: email}
-        // }
-      const result = await taskCollection.find().toArray();
+        const email = req.query?.email;
+        let  query = {};
+        if(email){
+           query = {email: email}
+        }
+      const result = await taskCollection.find(query).toArray();
         res.send(result)
     })
 
+     //single data get
+     app.get("/task/:id", async(req, res)=>{
+      const id = req.params.id;
+     // console.log(id);
+       const query= {_id:new ObjectId(id)}
+       const result = await taskCollection.findOne(query)
+      res.send(result)
+
+  })
     app.post('/task/create-task', async(req, res) => {
         const product = req.body; console.log(product);
         const result = await taskCollection.insertOne(product);
          res.send(result);
+    })
+
+    app.post('/all-task', async(req, res) => {
+      const deletedResult = await taskCollection.deleteMany();
+      console.log(deletedResult);
+      const product = req.body; console.log(product);
+      const result = await taskCollection.insertMany(product);
+       res.send(result);
+  })
+
+  app.put('/update-task/:id', async(req, res) => {
+    const id =  req.params.id;
+    console.log(id);
+    //  const priority = form.priority.value
+   // const deadline = form.deadline.value
+         const updateJob = req.body;
+         console.log(updateJob);
+         const filter= {_id: new ObjectId(id)}
+         const option = {upsert: true}
+        const task = {
+         $set: {
+          title:updateJob.title,
+          priority:updateJob.priority,
+          deadline:updateJob.deadline,
+           description:updateJob.description
+          
+          }
+        }
+        const result = await taskCollection.updateOne(filter, task, option)
+        res.send(result)
+  })
+    app.delete('/task/:id',   async(req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
     })
 
     app.get('/feature', async(req, res) => {
