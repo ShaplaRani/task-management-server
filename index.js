@@ -33,8 +33,31 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     //await client.connect();
+    const taskCollection = client.db("taskDb").collection("task");
+    const featureCollection = client.db("taskDb").collection("feature");
     // Send a ping to confirm a successful connection
     //await client.db("admin").command({ ping: 1 });
+    app.get('/task', async(req, res) => {
+        // const email = req.query?.email;
+        // let  query = {};
+        // if(email){
+        //    query = {email: email}
+        // }
+      const result = await taskCollection.find().toArray();
+        res.send(result)
+    })
+
+    app.post('/task/create-task', async(req, res) => {
+        const product = req.body; console.log(product);
+        const result = await taskCollection.insertOne(product);
+         res.send(result);
+    })
+
+    app.get('/feature', async(req, res) => {
+        
+       const result = await featureCollection.find().toArray();
+        res.send(result)
+    })
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -46,8 +69,8 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('survey is setting')
+    res.send('taskFlowHub is setting')
   })
   app.listen(port, () => {
-    console.log(`survey is sitting on port:${port}`);
+    console.log(`taskFlowHub is sitting on port:${port}`);
   })
